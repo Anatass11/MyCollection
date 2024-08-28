@@ -1,4 +1,6 @@
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -61,8 +63,17 @@ public class MyLinkedList<T extends Comparable> implements MyCollection<T>{
     private MyLinkedList<T> scroll(int index){
         MyLinkedList<T> H = this;
         index = index % this.size;
-        if(index == -1){
-            H = this.getPrev();
+        if(index < 0){
+            if( (index * -1) <= this.size/2) {
+                for (int i = 0; i > index; --i) {
+                    H = H.getPrev();
+                }
+            }
+            else {
+                for (int i = this.size; i > (-1 * index); --i) {
+                    H = H.getNext();
+                }
+            }
         }
         else {
             if(index <= this.size/2) {
@@ -166,6 +177,7 @@ public class MyLinkedList<T extends Comparable> implements MyCollection<T>{
         return res;
     }
 
+    @SuppressWarnings("unchecked")
     private boolean isSorted(){
         MyLinkedList<T> H = this;
         boolean res = false;
@@ -182,6 +194,7 @@ public class MyLinkedList<T extends Comparable> implements MyCollection<T>{
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void bubbleSort() {
         for (int out = size - 1; out >= 1; out--){
             MyLinkedList<T> H = this;
@@ -197,32 +210,32 @@ public class MyLinkedList<T extends Comparable> implements MyCollection<T>{
         }
     }
 
-    private MyLinkedList<T> combine(MyLinkedList<T> left, MyLinkedList<T> center, MyLinkedList<T> right){
-        if(right.getItem() != null) {
-            center.setNext(right);
-            right.setPrev(center);
-        }
+    private MyLinkedList<T> combine(MyArrayList<T> left, T center, MyArrayList<T> right){
+        MyArrayList<T> temp = new MyArrayList<>();
         if(left.getItem() != null){
-            left.scroll(left.size-1).setNext(center);
-            center.setPrev(left);
+            temp.addAll(Arrays.asList(left.toArray()));
         }
-        else return center;
-        return left;
+        temp.add(center);
+        if(right.getItem() != null) {
+            temp.addAll(Arrays.asList(right.toArray()));
+        }
+        return new MyLinkedList<>(Arrays.stream(temp.toArray()).toList());
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void quickSort() {
         if(this.isSorted()) return;
-        MyLinkedList<T> small = new MyLinkedList<>(), center, big = new MyLinkedList<>();
+        MyArrayList<T> small = new MyArrayList<>(), big = new MyArrayList<>();
         int i = this.size/2;
-        center = this.scroll(i);
+        T center = this.get(i);
         if(!this.isSorted()) {
             for (int j = 0; j < this.size; ++j) {
-                if (this.scroll(j).getItem().compareTo(center.getItem()) > 0) {
-                    big.add(this.scroll(j).getItem());
+                if (this.get(i).compareTo(center) > 0) {
+                    big.add(this.get(j));
                 }
                 else if(j != i){
-                    small.add(this.scroll(j).getItem());
+                    small.add(this.get(j));
                 }
             }
             if(big.getItem() != null) big.quickSort();
@@ -277,8 +290,9 @@ public class MyLinkedList<T extends Comparable> implements MyCollection<T>{
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T[] toArray() {
-        T[] temp = (T[]) new Object[this.size];
+        T[] temp = (T[]) Array.newInstance((this.getItem()).getClass(), size);
         MyLinkedList<T> H = this;
         for (int i = 0; i < this.size; ++i){
             temp[i] = H.getItem();

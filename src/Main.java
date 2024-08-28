@@ -7,8 +7,8 @@ import java.util.stream.IntStream;
 public class Main {
     public static void main(String[] args) {
         Random random = new Random();
-        int[] arg = new int[10];
-        for(int i = 0; i < 10; ++i){
+        int[] arg = new int[100000];
+        for(int i = 0; i < 100000; ++i){
             arg[i] = random.nextInt(-100, 100);
         }
         ArrayList<Integer> rand = new ArrayList<>(IntStream.of(arg).boxed().toList());
@@ -24,12 +24,12 @@ public class Main {
         testList.add(1);
         array.addAll(testList);
         System.out.println(array);
-        array.removeAll(testList);
+        //array.removeAll(testList);
 
         array.remove(2);
         array.remove((Integer) 1);
         array.set(0, 8);
-        array.bubbleSort();
+        //array.bubbleSort();
         array.quickSort();
         System.out.println(array);
         System.out.println(array.contain(4));
@@ -37,7 +37,7 @@ public class Main {
         for(Integer ints : array.toArray(new Integer[array.size()])){
             System.out.println(ints);
         }*/
-        list.add(5);
+        /*list.add(5);
         list.add(2);
         test.add(4);
         test.add(3);
@@ -59,12 +59,11 @@ public class Main {
         for(Integer ints : list.toArray(new Integer[list.size()])){
             System.out.println(ints);
         }
-        /*long startTime = System.currentTimeMillis();
-        array.quickSort();
+         */
+        long startTime = System.currentTimeMillis();
+        list.bubbleSort(); //11440
         long endTime = System.currentTimeMillis();
         long timeElapsed = endTime - startTime;
         System.out.println(timeElapsed);
-
-         */
     }
 }

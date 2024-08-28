@@ -1,19 +1,19 @@
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class MyArrayList<T extends Comparable> implements MyCollection<T>{
-    private int size = 0;
+    private int size = 0, buffer = 10;
 
-    private T item;
-
-    private MyArrayList<T> next;
+    private T[] items;
 
     public MyArrayList(){}
 
-    public MyArrayList(T item) {
-        this.item = item;
+    public MyArrayList(T[] items) {
+        this.items = items;
+        this.buffer = items.length;
+        this.size = items.length;
     }
     public MyArrayList(Collection<T> collection){
         for(T item: collection){
@@ -21,100 +21,95 @@ public class MyArrayList<T extends Comparable> implements MyCollection<T>{
         }
     }
 
-    public T getItem() {
-        return item;
+    public T[] getItem() {
+        return items;
     }
 
-    public MyArrayList<T> getNext() {
-        return next;
-    }
-
-    public void setItem(T item) {
-        this.item = item;
-    }
-
-    public void setNext(MyArrayList<T> next) {
-        this.next = next;
+    public void setItem(T[] items) {
+        this.items = items;
+        this.buffer = items.length;
+        this.size = items.length;
     }
 
     public String toString(){
         StringBuilder res = new StringBuilder("[ ");
-        MyArrayList<T> H = this;
-        while (H.getNext() != null){
-            res.append(H.getItem());
+        for(int i = 0; i < size; ++i){
+            res.append(items[i]);
             res.append(", ");
-            H = H.getNext();
         }
-        res.append(H.getItem());
+        res.delete(res.length()-2, res.length()-1);
         res.append("]");
         return res.toString();
     }
 
-    private MyArrayList<T> scroll(int index){
-        MyArrayList<T> H = this;
-        if(index == -1){
-            while (H.getNext() != null) H = H.getNext();
-        }
-        else {
-            for (int i = 0; i < index; ++i) {
-                if (H.getNext() != null) H = H.getNext();
-                else throw new IndexOutOfBoundsException("Index out of bounds!");
-            }
-        }
-        return H;
+    @SuppressWarnings("unchecked")
+    private void expand(){
+        buffer *= 1.5;
+        T[] temp = this.items;
+        this.items = (T[]) Array.newInstance((temp[0]).getClass(), buffer);
+        if (size >= 0) System.arraycopy(temp, 0, this.items, 0, size);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void trimToSize(){
+        T[] temp = (T[]) Array.newInstance((items[0]).getClass(), size);
+        if (size >= 0) System.arraycopy(items, 0, temp, 0, size);
+        buffer = size;
+        this.items = temp;
     }
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public void add(T item) {
-        if(this.getItem() == null) this.setItem((T)item);
-        else scroll(-1).setNext(new MyArrayList<>((T)item));
-        ++size;
+        if(this.items == null){
+            this.items = (T[]) Array.newInstance(item.getClass(), buffer);
+        }
+        else if(size == buffer){
+            expand();
+        }
+        this.items[size++] = item;
     }
 
     @Override
     public void add(int index, T item) {
-        MyArrayList<T> H, temp;
-        if(index == 0){
-            H = new MyArrayList<>(this.getItem());
-            H.setNext(this.getNext());
-            this.setNext(H);
-            this.setItem(item);
+        if(size == buffer){
+            expand();
         }
-        else {
-            H = scroll(index-1);
-            temp = new MyArrayList<>(item);
-            temp.setNext(H.getNext());
-            H.setNext(temp);
+        for(int i = size; i > index; --i){
+            this.items[i] = this.items[i-1];
         }
-        ++size;
+        this.items[index] = item;
+        size++;
     }
 
     @Override
     public T get(int index) {
-        return scroll(index).getItem();
+        if(index >= size || index < 0){
+            throw new IndexOutOfBoundsException("Index out of bounds!");
+        }
+        return this.items[index];
     }
 
     @Override
     public void set(int index, T item) {
-        scroll(index).setItem(item);
+        if(index >= size || index < 0){
+            throw new IndexOutOfBoundsException("Index out of bounds!");
+        }
+        this.items[index] = item;
     }
 
     @Override
     public T remove(int index) {
-        T num;
-        if(index == 0) {
-            num = this.getItem();
-            this.setItem(this.getNext().getItem());
-            this.setNext(this.getNext().getNext());
+        if(index >= size || index < 0){
+            throw new IndexOutOfBoundsException("Index out of bounds!");
         }
-        else {
-            MyArrayList<T> H = scroll(index-1);
-            num = (T) H.getNext().getItem();
-            H.setNext(H.getNext().getNext());
+        T temp = items[index];
+        for (int i = index; i < size-1; ++i){
+            items[i] = items[i+1];
         }
-        --size;
-        return num;
+        items[--size] = null;
+        return temp;
     }
 
     @Override
@@ -126,90 +121,95 @@ public class MyArrayList<T extends Comparable> implements MyCollection<T>{
     public boolean removeAll(Collection<? extends T> collection) {
         boolean res = false;
         for(T item: collection){
-            res = this.remove(item);
+            res = remove(item);
             if(!res) break;
         }
         return res;
     }
 
+    @Override
+    public void addAll(Collection<? extends T> collection) {
+        for(T item: collection){
+            add(item);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     private boolean isSorted(){
-        MyArrayList<T> H = this;
         boolean res = false;
         if(this.size == 1) return true;
-        while (H.getNext() != null){
-            if(H.getItem().compareTo(H.getNext().getItem()) > 0){
+        for (int i = 0; i < this.size-1; ++i){
+            if(items[i].compareTo(items[i+1]) > 0){
                 res = false;
                 break;
             }
             res = true;
-            H = H.getNext();
         }
         return res;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void bubbleSort() {
         for (int out = size - 1; out >= 1; out--){
-            MyArrayList<T> H = this;
             if(this.isSorted()) break;
             for (int in = 0; in < out; in++){
-                if(H.getItem().compareTo(H.getNext().getItem()) > 0){
-                    T temp = H.getItem();
-                    H.setItem(H.getNext().getItem());
-                    H.getNext().setItem(temp);
+                if(items[in].compareTo(items[in+1]) > 0){
+                    T temp = items[in];
+                    items[in] = items[in+1];
+                    items[in+1] = temp;
                 }
-                H = H.getNext();
             }
         }
     }
 
-    private MyArrayList<T> combine(MyArrayList<T> left, MyArrayList<T> center, MyArrayList<T> right){
-        if(right.getItem() != null) center.setNext(right);
-        if(left.getItem() != null) left.scroll(left.size-1).setNext(center);
-        else return center;
-        return left;
+    private MyArrayList<T> combine(MyArrayList<T> left, T center, MyArrayList<T> right){
+        MyArrayList<T> temp = new MyArrayList<>();
+        if(left.getItem() != null){
+            temp.addAll(Arrays.asList(left.toArray()));
+        }
+        temp.add(center);
+        if(right.getItem() != null) {
+            temp.addAll(Arrays.asList(right.toArray()));
+        }
+        return temp;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void quickSort() {
-        if(this.size == 1 || this.isSorted()) return;
-        MyArrayList<T> small = new MyArrayList<>(), center, big = new MyArrayList<>();
+        if(this.isSorted()) return;
+        MyArrayList<T> small = new MyArrayList<>(), big = new MyArrayList<>();
         int i = this.size/2;
-        center = this.scroll(i);
-        for (int j = 0; j < this.size; ++j) {
-            if (this.scroll(j).getItem().compareTo(center.getItem()) > 0) {
-                big.add(this.scroll(j).getItem());
+        T center = this.items[i];
+        if(!this.isSorted()) {
+            for (int j = 0; j < this.size; ++j) {
+                if (items[j].compareTo(center) > 0) {
+                    big.add(items[j]);
+                }
+                else if(j != i){
+                    small.add(items[j]);
+                }
             }
-            else if(j != i){
-                small.add(this.scroll(j).getItem());
-            }
+            if(big.getItem() != null) big.quickSort();
+            if(small.getItem() != null) small.quickSort();
         }
-        if(big.getItem() != null) big.quickSort();
-        if(small.getItem() != null) small.quickSort();
-        MyArrayList<T> res = combine(small, center, big);
-        this.setNext(res.getNext());
-        this.setItem(res.getItem());
+        this.setItem(combine(small, center, big).toArray());
     }
 
     @Override
     public boolean contain(T item) {
-        MyArrayList<T> H = this;
-        while (H.getNext() != null && H.getItem() != item) H = H.getNext();
-        return H.getItem() == item;
+        return indexOf(item) != -1;
     }
 
     @Override
     public int indexOf(T item) {
-        int i = 0;
-        MyArrayList<T> H = this;
-        while (H.getNext() != null){
-            if(H.getItem() == item){
+        int i;
+        for(i = 0; i < size; ++i){
+            if(items[i] == item){
                 return i;
             }
-            ++i;
-            H = H.getNext();
         }
-        if(H.getItem() == item) return i;
         return -1;
     }
 
@@ -220,53 +220,42 @@ public class MyArrayList<T extends Comparable> implements MyCollection<T>{
 
     @Override
     public void clear() {
-        this.setNext(null);
-        this.setItem(null);
+        this.items = null;
+        this.size = 0;
+        this.buffer = 10;
     }
 
     @Override
     public boolean isEmpty() {
-        return this.getItem() == null && this.getNext() == null;
+        return (this.items == null || size == 0);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T[] toArray() {
-        T[] temp = (T[]) new Object[this.size];
-        MyArrayList<T> H = this;
-        for (int i = 0; i < this.size; ++i){
-            temp[i] = H.getItem();
-            H = H.getNext();
-        }
+        T[] temp = (T[]) Array.newInstance((items[0]).getClass(), size);
+        if (size >= 0) System.arraycopy(items, 0, temp, 0, size);
         return temp;
     }
 
     @Override
     public T[] toArray(T[] temp) {
-        MyArrayList<T> H = this;
-        for (int i = 0; i < this.size; ++i){
-            temp[i] = H.getItem();
-            H = H.getNext();
-        }
+        if (size >= 0) System.arraycopy(items, 0, temp, 0, size);
         return temp;
-    }
-
-    @Override
-    public void addAll(Collection<? extends T> collection) {
-        for(T item: collection){
-            this.add(item);
-        }
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MyArrayList<?> myArrayList = (MyArrayList<?>) o;
-        return Objects.equals(item, myArrayList.item) && Objects.equals(next, myArrayList.next);
+        MyArrayList<?> that = (MyArrayList<?>) o;
+        return size == that.size && buffer == that.buffer && Arrays.equals(items, that.items);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(item, next);
+        int result = Objects.hash(size, buffer);
+        result = 31 * result + Arrays.hashCode(items);
+        return result;
     }
 }
