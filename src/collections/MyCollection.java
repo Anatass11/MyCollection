@@ -1,3 +1,7 @@
+package collections;
+
+import collections.MyArrayList;
+
 import java.util.Collection;
 
 public interface MyCollection<T> {
@@ -9,8 +13,8 @@ public interface MyCollection<T> {
     boolean remove(T item);
     boolean removeAll(Collection<? extends T> collection);
     void addAll(Collection<? extends T> collection);
-    void bubbleSort();
-    void quickSort();
+    static void bubbleSort(){};
+    static void quickSort(){};
     boolean contain(T item);
     int indexOf(T item);
     int size();
@@ -18,9 +22,9 @@ public interface MyCollection<T> {
     boolean isEmpty();
     T[] toArray();
     T[] toArray(T[] temp);
-    static void sort(Collection collection){
-        MyArrayList temp = new MyArrayList<>(collection);
-        temp.quickSort();
+    static <T extends Comparable> void sort(Collection<T> collection){
+        MyArrayList<T> temp = new MyArrayList<>(collection);
+        MyArrayList.quickSort(temp);
         collection.clear();
         for (int i = 0; i < temp.size(); ++i){
             collection.add(temp.get(i));

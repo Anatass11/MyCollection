@@ -1,4 +1,7 @@
 
+import collections.MyArrayList;
+import collections.MyLinkedList;
+
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Random;
@@ -7,8 +10,8 @@ import java.util.stream.IntStream;
 public class Main {
     public static void main(String[] args) {
         Random random = new Random();
-        int[] arg = new int[100000];
-        for(int i = 0; i < 100000; ++i){
+        int[] arg = new int[10000];
+        for(int i = 0; i < 10000; ++i){
             arg[i] = random.nextInt(-100, 100);
         }
         ArrayList<Integer> rand = new ArrayList<>(IntStream.of(arg).boxed().toList());
@@ -43,10 +46,10 @@ public class Main {
         test.add(3);
         test.add(1);
         System.out.println(rand);
-        MyCollection.sort(rand);
+        collections.MyCollection.sort(rand);
         System.out.println(rand);
         list.addAll(test);
-        // = new MyLinkedList<>(test);
+        // = new collections.MyLinkedList<>(test);
         //list.quickSort();
         list.bubbleSort();
         System.out.println(list);
@@ -61,7 +64,7 @@ public class Main {
         }
          */
         long startTime = System.currentTimeMillis();
-        list.bubbleSort(); //11440
+        MyLinkedList.quickSort(list); //11440
         long endTime = System.currentTimeMillis();
         long timeElapsed = endTime - startTime;
         System.out.println(timeElapsed);
