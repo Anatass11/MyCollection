@@ -306,7 +306,7 @@ public class MyLinkedList<T> implements MyCollection<T> {
         MyLinkedList<T> H = this;
         if(size == that.size){
             for(int i = 0; i < size; ++i){
-                if(!Objects.equals(H.item, that.item) || !Objects.equals(H.next, that.next) || !Objects.equals(H.prev, that.prev)){
+                if(!Objects.equals(H.item, that.item)){
                     return false;
                 }
                 H = H.getNext();

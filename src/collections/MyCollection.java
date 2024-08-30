@@ -13,8 +13,6 @@ public interface MyCollection<T> {
     boolean remove(T item);
     boolean removeAll(Collection<? extends T> collection);
     void addAll(Collection<? extends T> collection);
-    static void bubbleSort(){};
-    static void quickSort(){};
     boolean contain(T item);
     int indexOf(T item);
     int size();

@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class MyArrayList<T> implements MyCollection<T> {
     private int size = 0, buffer = 10;
-    private static final double increase = 1.5;
+    private static final double INCREASE = 1.5;
 
     private T[] items;
 
@@ -37,8 +37,8 @@ public class MyArrayList<T> implements MyCollection<T> {
         return (T[]) Array.newInstance(clas, size);
     }
 
-    private static <T> MyArrayList<T> combine(MyArrayList<T> left, T center, MyArrayList<T> right){
-        MyArrayList<T> temp = new MyArrayList<>();
+    private static <R> MyArrayList<R> combine(MyArrayList<R> left, R center, MyArrayList<R> right){
+        MyArrayList<R> temp = new MyArrayList<>();
         if(!left.isEmpty()){
             temp.addAll(Arrays.asList(left.toArray()));
         }
@@ -71,7 +71,7 @@ public class MyArrayList<T> implements MyCollection<T> {
 
     @SuppressWarnings("unchecked")
     private void expand(){
-        buffer *= increase;
+        buffer *= INCREASE;
         T[] temp = this.items;
         this.items = create((Class<T>) this.get(0).getClass(), buffer);
         if (size >= 0) System.arraycopy(temp, 0, this.items, 0, size);
@@ -82,7 +82,7 @@ public class MyArrayList<T> implements MyCollection<T> {
     }
 
     private void checkIndex(int index){
-        if(index > size || index < 0) throw new IndexOutOfBoundsException("Out of bounds!");
+        if(index >= size || index < 0) throw new IndexOutOfBoundsException("Out of bounds!");
     }
 
     @Override
@@ -151,14 +151,16 @@ public class MyArrayList<T> implements MyCollection<T> {
 
     public static <R extends Comparable<R>> void bubbleSort(MyArrayList<R> sort) {
         for (int out = sort.size() - 1; out >= 1; out--){
-            if(sort.isSorted()) break;
+            boolean sorted = true;
             for (int in = 0; in < out; in++){
                 if(sort.get(in).compareTo(sort.get(in+1)) > 0){
                     R temp = sort.get(in);
                     sort.set(in, sort.get(in+1));
                     sort.set(in+1, temp);
+                    sorted = false;
                 }
             }
+            if(sorted) break;
         }
     }
 
